@@ -1,0 +1,268 @@
+% Load the two fingerprint images
+image1 = imread('Fingerprint 1.jpg');  % Replace with actual image path
+image2 = imread('Fingerprint 2.jpg');  % Replace with actual image path
+imshow(image1);
+imshow(image2);
+% Convert to grayscale if necessary
+if size(image1, 3) == 3
+    image1 = rgb2gray(image1);
+end
+if size(image2, 3) == 3
+    image2 = rgb2gray(image2);
+end
+
+% Convert to binary using automatic thresholding
+binaryImage1 = imbinarize(image1);
+binaryImage2 = imbinarize(image2);
+imshow(binaryImage1);
+imshow(binaryImage2);
+% Skeletonize the binary images
+skeletonImage1 = bwmorph(binaryImage1, 'skel', Inf);
+skeletonImage2 = bwmorph(binaryImage2, 'skel', Inf);
+
+% Display skeletonized images
+figure;
+subplot(1, 2, 1);
+imshow(skeletonImage1);
+title('Skeletonized Fingerprint 1');
+subplot(1, 2, 2);
+imshow(skeletonImage2);
+title('Skeletonized Fingerprint 2');
+
+% Initialize arrays for minutiae points (endings and bifurcations)
+minutiaeEndings1 = [];
+minutiaeBifurcations1 = [];
+minutiaeEndings2 = [];
+minutiaeBifurcations2 = [];
+
+% Get the size of the skeleton images
+[rows1, cols1] = size(skeletonImage1);
+[rows2, cols2] = size(skeletonImage2);
+
+% Loop through each pixel in the skeleton image 1
+for r = 2:rows1-1
+    for c = 2:cols1-1
+        if skeletonImage1(r, c) == 1
+            % Extract the 3x3 neighborhood around the current pixel
+            neighborhood = skeletonImage1(r-1:r+1, c-1:c+1);
+            ridgePixels = sum(neighborhood(:));
+            
+            % Classify minutiae points based on the number of connected ridge pixels
+            if ridgePixels == 2
+                % Ending: 1 connected neighbor
+                minutiaeEndings1 = [minutiaeEndings1; c, r];
+            elseif ridgePixels == 3
+                % Bifurcation: 3 connected neighbors
+                minutiaeBifurcations1 = [minutiaeBifurcations1; c, r];
+            end
+        end
+    end
+end
+
+% Loop through each pixel in the skeleton image 2
+for r = 2:rows2-1
+    for c = 2:cols2-1
+        if skeletonImage2(r, c) == 1
+            % Extract the 3x3 neighborhood around the current pixel
+            neighborhood = skeletonImage2(r-1:r+1, c-1:c+1);
+            ridgePixels = sum(neighborhood(:));
+            
+            % Classify minutiae points based on the number of connected ridge pixels
+            if ridgePixels == 2
+                % Ending: 1 connected neighbor
+                minutiaeEndings2 = [minutiaeEndings2; c, r];
+            elseif ridgePixels == 3
+                % Bifurcation: 3 connected neighbors
+                minutiaeBifurcations2 = [minutiaeBifurcations2; c, r];
+            end
+        end
+    end
+end
+
+% Display the minutiae points on the skeletonized fingerprint images
+figure;
+subplot(1, 2, 1);
+imshow(skeletonImage1);
+hold on;
+plot(minutiaeEndings1(:, 1), minutiaeEndings1(:, 2), 'r*', 'MarkerSize', 5);  % Red for endings
+plot(minutiaeBifurcations1(:, 1), minutiaeBifurcations1(:, 2), 'go', 'MarkerSize', 5);  % Green for bifurcations
+title('Minutiae for Fingerprint 1');
+
+subplot(1, 2, 2);
+imshow(skeletonImage2);
+hold on;
+plot(minutiaeEndings2(:, 1), minutiaeEndings2(:, 2), 'r*', 'MarkerSize', 5);  % Red for endings
+plot(minutiaeBifurcations2(:, 1), minutiaeBifurcations2(:, 2), 'go', 'MarkerSize', 5);  % Green for bifurcations
+title('Minutiae for Fingerprint 2');
+
+% Matching Minutiae (based on Euclidean distance between corresponding points)
+function matchScore = matchMinutiae(endings1, bifurcations1, endings2, bifurcations2)
+    matchScore = 0;
+    
+    % Match endings
+    for i = 1:size(endings1, 1)
+        for j = 1:size(endings2, 1)
+            dist = norm(endings1(i, :) - endings2(j, :));  % Euclidean distance
+            if dist < 5  % Threshold for matching (can be adjusted)
+                matchScore = matchScore + 1;
+            end
+        end
+    end
+    
+    % Match bifurcations
+    for i = 1:size(bifurcations1, 1)
+        for j = 1:size(bifurcations2, 1)
+            dist = norm(bifurcations1(i, :) - bifurcations2(j, :));  % Euclidean distance
+            if dist < 5  % Threshold for matching (can be adjusted)
+                matchScore = matchScore + 1;
+            end
+        end
+    end% Load the two fingerprint images
+image1 = imread('Fingerprint 1.jpg');  % Replace with actual image path
+image2 = imread('Fingerprint 2.jpg');  % Replace with actual image path
+imshow(image1);
+imshow(image2);
+% Convert to grayscale if necessary
+if size(image1, 3) == 3
+    image1 = rgb2gray(image1);
+end
+if size(image2, 3) == 3
+    image2 = rgb2gray(image2);
+end
+
+% Convert to binary using automatic thresholding
+binaryImage1 = imbinarize(image1);
+binaryImage2 = imbinarize(image2);
+imshow(binaryImage1);
+imshow(binaryImage2);
+% Skeletonize the binary images
+skeletonImage1 = bwmorph(binaryImage1, 'skel', Inf);
+skeletonImage2 = bwmorph(binaryImage2, 'skel', Inf);
+
+% Display skeletonized images
+figure;
+subplot(1, 2, 1);
+imshow(skeletonImage1);
+title('Skeletonized Fingerprint 1');
+subplot(1, 2, 2);
+imshow(skeletonImage2);
+title('Skeletonized Fingerprint 2');
+
+% Initialize arrays for minutiae points (endings and bifurcations)
+minutiaeEndings1 = [];
+minutiaeBifurcations1 = [];
+minutiaeEndings2 = [];
+minutiaeBifurcations2 = [];
+
+% Get the size of the skeleton images
+[rows1, cols1] = size(skeletonImage1);
+[rows2, cols2] = size(skeletonImage2);
+
+% Loop through each pixel in the skeleton image 1
+for r = 2:rows1-1
+    for c = 2:cols1-1
+        if skeletonImage1(r, c) == 1
+            % Extract the 3x3 neighborhood around the current pixel
+            neighborhood = skeletonImage1(r-1:r+1, c-1:c+1);
+            ridgePixels = sum(neighborhood(:));
+            
+            % Classify minutiae points based on the number of connected ridge pixels
+            if ridgePixels == 2
+                % Ending: 1 connected neighbor
+                minutiaeEndings1 = [minutiaeEndings1; c, r];
+            elseif ridgePixels == 3
+                % Bifurcation: 3 connected neighbors
+                minutiaeBifurcations1 = [minutiaeBifurcations1; c, r];
+            end
+        end
+    end
+end
+
+% Loop through each pixel in the skeleton image 2
+for r = 2:rows2-1
+    for c = 2:cols2-1
+        if skeletonImage2(r, c) == 1
+            % Extract the 3x3 neighborhood around the current pixel
+            neighborhood = skeletonImage2(r-1:r+1, c-1:c+1);
+            ridgePixels = sum(neighborhood(:));
+            
+            % Classify minutiae points based on the number of connected ridge pixels
+            if ridgePixels == 2
+                % Ending: 1 connected neighbor
+                minutiaeEndings2 = [minutiaeEndings2; c, r];
+            elseif ridgePixels == 3
+                % Bifurcation: 3 connected neighbors
+                minutiaeBifurcations2 = [minutiaeBifurcations2; c, r];
+            end
+        end
+    end
+end
+
+% Display the minutiae points on the skeletonized fingerprint images
+figure;
+subplot(1, 2, 1);
+imshow(skeletonImage1);
+hold on;
+plot(minutiaeEndings1(:, 1), minutiaeEndings1(:, 2), 'r*', 'MarkerSize', 5);  % Red for endings
+plot(minutiaeBifurcations1(:, 1), minutiaeBifurcations1(:, 2), 'go', 'MarkerSize', 5);  % Green for bifurcations
+title('Minutiae for Fingerprint 1');
+
+subplot(1, 2, 2);
+imshow(skeletonImage2);
+hold on;
+plot(minutiaeEndings2(:, 1), minutiaeEndings2(:, 2), 'r*', 'MarkerSize', 5);  % Red for endings
+plot(minutiaeBifurcations2(:, 1), minutiaeBifurcations2(:, 2), 'go', 'MarkerSize', 5);  % Green for bifurcations
+title('Minutiae for Fingerprint 2');
+
+% Matching Minutiae (based on Euclidean distance between corresponding points)
+function matchScore = matchMinutiae(endings1, bifurcations1, endings2, bifurcations2)
+    matchScore = 0;
+    
+    % Match endings
+    for i = 1:size(endings1, 1)
+        for j = 1:size(endings2, 1)
+            dist = norm(endings1(i, :) - endings2(j, :));  % Euclidean distance
+            if dist < 5  % Threshold for matching (can be adjusted)
+                matchScore = matchScore + 1;
+            end
+        end
+    end
+    
+    % Match bifurcations
+    for i = 1:size(bifurcations1, 1)
+        for j = 1:size(bifurcations2, 1)
+            dist = norm(bifurcations1(i, :) - bifurcations2(j, :));  % Euclidean distance
+            if dist < 5  % Threshold for matching (can be adjusted)
+                matchScore = matchScore + 1;
+            end
+        end
+    end
+end
+
+% Calculate match score between the two fingerprints
+matchScore = matchMinutiae(minutiaeEndings1, minutiaeBifurcations1, minutiaeEndings2, minutiaeBifurcations2);
+disp(['Match Score: ', num2str(matchScore)]);
+
+% Define match threshold
+matchThreshold = 10;  % This can be adjusted based on the dataset
+
+if matchScore > matchThreshold
+    disp('The fingerprints match!');
+else
+    disp('The fingerprints do not match.');
+end
+
+end
+
+% Calculate match score between the two fingerprints
+matchScore = matchMinutiae(minutiaeEndings1, minutiaeBifurcations1, minutiaeEndings2, minutiaeBifurcations2);
+disp(['Match Score: ', num2str(matchScore)]);
+
+% Define match threshold
+matchThreshold = 10;  % This can be adjusted based on the dataset
+
+if matchScore > matchThreshold
+    disp('The fingerprints match!');
+else
+    disp('The fingerprints do not match.');
+end
